@@ -7,6 +7,7 @@
         :root { --primary: #e67e22; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 40px; }
         
+        /* 页面宽度拉伸到 1300px，确保容纳备注和时间 */
         .container { max-width: 1300px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; }
         
         h2 { color: var(--primary); margin-top: 0; }
@@ -21,10 +22,9 @@
         
         table { width: 100%; border-collapse: collapse; margin-top: 30px; }
         th { background: #f8f9fa; color: var(--primary); padding: 15px; text-align: left; border-bottom: 2px solid #eee; white-space: nowrap; }
-        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 13px; }
+        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 13px; vertical-align: top; }
 
         .inline-select { padding: 5px 8px; border-radius: 5px; border: 1px solid #ddd; background: #fff; font-size: 12px; cursor: pointer; }
-        .time-badge { font-size: 11px; color: #95a5a6; display: block; margin-top: 4px; }
         .delete-btn { color: var(--danger); cursor: pointer; font-weight: bold; font-size: 12px; }
     </style>
 </head>
@@ -59,10 +59,10 @@
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>投递日期</th>
+                    <th>日期</th>
                     <th>公司/地点</th>
-                    <th>岗位名称</th>
-                    <th>状态变更时间</th>
+                    <th>岗位</th>
+                    <th>备注信息</th> <th style="min-width: 110px;">状态变更</th>
                     <th style="min-width: 140px;">当前状态</th>
                     <th>操作</th>
                 </tr>
@@ -72,7 +72,7 @@
     </div>
 
     <script>
-        // 密码锁保持不变
+        // 密码锁（请确保这里的密码与你之前设置的一致）
         const PASS_WORD = "123456"; 
         let accessGranted = false;
         while (!accessGranted) {
@@ -106,9 +106,8 @@
                     <td>${job.date}</td>
                     <td><strong>${job.company}</strong><br><small style="color:#7f8c8d">${job.location}</small></td>
                     <td>${job.role}</td>
-                    <td>
-                        <span style="color:#7f8c8d; font-size: 12px;">${job.updatedAt || '刚刚创建'}</span>
-                    </td>
+                    <td style="color:#2c3e50; max-width: 250px;">${job.details || '-'}</td>
+                    <td style="color:#7f8c8d; font-size: 11px;">${job.updatedAt || '初始投递'}</td>
                     <td>
                         <select class="inline-select" onchange="updateStatus(${index}, this.value)">
                             <option value="已投递" ${job.status === '已投递' ? 'selected' : ''}>已投递</option>
@@ -129,17 +128,15 @@
             if(document.getElementById('topCounter')) document.getElementById('topCounter').innerText = `已投递: ${count} / 100`;
             if(document.getElementById('progressBar')) document.getElementById('progressBar').style.width = percentage + '%';
             if(document.getElementById('progressText')) document.getElementById('progressText').innerText = `进度: ${count} / 100`;
+            
             localStorage.setItem('myJobHunt', JSON.stringify(jobs));
         }
 
-        // 修改状态时，自动刷新“更新时间”
         function updateStatus(index, newStatus) {
             const now = new Date();
-            // 格式化时间为：04/29 15:30
-            const timeStr = `${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-            
+            const timeStr = `${(now.getMonth()+1)}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2,'0')}`;
             jobs[index].status = newStatus;
-            jobs[index].updatedAt = timeStr; // 存入更新时间
+            jobs[index].updatedAt = timeStr;
             updateUI();
         }
 
@@ -156,12 +153,12 @@
             }
 
             const now = new Date();
-            const timeStr = `${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+            const timeStr = `${(now.getMonth()+1)}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2,'0')}`;
 
             const newJob = {
                 date: now.toLocaleDateString(),
                 company, location, role, details, status,
-                updatedAt: timeStr // 初始时间
+                updatedAt: timeStr
             };
 
             jobs.push(newJob);
