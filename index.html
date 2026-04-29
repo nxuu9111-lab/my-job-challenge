@@ -4,24 +4,38 @@
     <meta charset="UTF-8">
     <title>Laurina's 100 Job Challenge</title>
     <style>
-        :root { --primary: #e67e22; --accent: #3498db; --success: #27ae60; }
+        :root { --primary: #e67e22; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 40px; }
-        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; }
+        
+        /* 1. 扩大页面宽度 */
+        .container { max-width: 1200px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; }
+        
         h2 { color: var(--primary); margin-top: 0; }
         .top-right-stats { position: absolute; top: 30px; right: 30px; background: var(--primary); color: white; padding: 8px 18px; border-radius: 30px; font-weight: bold; font-size: 14px; }
         .progress-container { background: #eee; border-radius: 20px; height: 25px; margin: 20px 0; overflow: hidden; position: relative; }
         .progress-bar { background: linear-gradient(90deg, #3498db, #2ecc71); height: 100%; width: 0%; transition: width 0.5s ease; }
         .progress-text { position: absolute; width: 100%; text-align: center; line-height: 25px; font-weight: bold; color: #333; }
+        
         .input-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px; }
         input, select { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
         button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; margin-top: 30px; }
-        th { background: #f8f9fa; color: var(--primary); padding: 15px; text-align: left; border-bottom: 2px solid #eee; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; table-layout: auto; }
+        
+        /* 2. 解决文字一行打不完的问题：th 不换行 */
+        th { background: #f8f9fa; color: var(--primary); padding: 15px; text-align: left; border-bottom: 2px solid #eee; white-space: nowrap; }
         td { padding: 15px; border-bottom: 1px solid #eee; font-size: 14px; }
-        .status-tag { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        .tag-applied { background: #d1ecf1; color: #0c5460; }
-        .tag-interview { background: #d4edda; color: #155724; }
-        .delete-btn { color: #e74c3c; cursor: pointer; font-weight: bold; font-size: 12px; }
+
+        /* 表格内的下拉框样式 */
+        .inline-select {
+            padding: 5px 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            background: #fff;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .delete-btn { color: var(--danger); cursor: pointer; font-weight: bold; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -45,6 +59,8 @@
                 <option value="沟通中">沟通中</option>
                 <option value="面试阶段">面试阶段</option>
                 <option value="已拿Offer">已拿Offer! 🎉</option>
+                <option value="未收到通知">未收到通知</option>
+                <option value="遗憾被拒">遗憾被拒</option>
             </select>
             <button onclick="addJob()">添加记录</button>
         </div>
@@ -57,7 +73,7 @@
                     <th>公司/地点</th>
                     <th>岗位名称</th>
                     <th>备注信息</th>
-                    <th>当前状态</th>
+                    <th style="min-width: 140px;">当前状态</th>
                     <th>操作</th>
                 </tr>
             </thead>
@@ -66,39 +82,32 @@
     </div>
 
     <script>
-        // 初始化数据，如果失败则给个空数组
-// --- 简易访问锁开始 ---
-const PASS_WORD = "123456"; // 在这里设置你的密码
-let accessGranted = false;
+        // --- 密码锁部分保持不变 ---
+        const PASS_WORD = "123456"; 
+        let accessGranted = false;
+        while (!accessGranted) {
+            const userInput = prompt("🔒 这是一个私密追踪器，请输入访问密码：");
+            if (userInput === PASS_WORD) {
+                accessGranted = true;
+            } else if (userInput === null) {
+                window.location.href = "about:blank";
+                break;
+            } else {
+                alert("密码错误！");
+            }
+        }
 
-// 使用 while 循环，直到输对密码或者用户取消
-while (!accessGranted) {
-    const userInput = prompt("🔒 这是一个私密追踪器，请输入访问密码：");
-    
-    if (userInput === PASS_WORD) {
-        accessGranted = true;
-    } else if (userInput === null) {
-        // 如果点击“取消”，直接跳往空白页
-        window.location.href = "about:blank";
-        break;
-    } else {
-        alert("密码错误，请重新输入！");
-    }
-}
-// --- 简易访问锁结束 ---        
-let jobs = [];
+        let jobs = [];
         try {
             const saved = localStorage.getItem('myJobHunt');
             jobs = saved ? JSON.parse(saved) : [];
         } catch (e) {
-            console.error("读取数据失败", e);
             jobs = [];
         }
 
         function updateUI() {
             const tbody = document.getElementById('tableBody');
             if (!tbody) return;
-            
             tbody.innerHTML = '';
             
             jobs.forEach((job, index) => {
@@ -108,16 +117,24 @@ let jobs = [];
                     <td><strong>${job.company}</strong><br><small style="color:#7f8c8d">${job.location}</small></td>
                     <td>${job.role}</td>
                     <td>${job.details}</td>
-                    <td><span class="status-tag ${job.status === '面试阶段' ? 'tag-interview' : 'tag-applied'}">${job.status}</span></td>
-                    <td><span class="delete-btn" onclick="deleteJob(${index})">删除记录</span></td>
+                    <td>
+                        <select class="inline-select" onchange="updateStatus(${index}, this.value)">
+                            <option value="已投递" ${job.status === '已投递' ? 'selected' : ''}>已投递</option>
+                            <option value="沟通中" ${job.status === '沟通中' ? 'selected' : ''}>沟通中</option>
+                            <option value="面试阶段" ${job.status === '面试阶段' ? 'selected' : ''}>面试阶段</option>
+                            <option value="已拿Offer" ${job.status === '已拿Offer' ? 'selected' : ''}>已拿Offer! 🎉</option>
+                            <option value="未收到通知" ${job.status === '未收到通知' ? 'selected' : ''}>未收到通知</option>
+                            <option value="遗憾被拒" ${job.status === '遗憾被拒' ? 'selected' : ''}>遗憾被拒</option>
+                        </select>
+                    </td>
+                    <td><span class="delete-btn" onclick="deleteJob(${index})">删除</span></td>
                 </tr>`;
                 tbody.innerHTML += row;
             });
 
+            // 更新计数和进度条
             const count = jobs.length;
             const percentage = Math.min((count / 100) * 100, 100);
-            
-            // 安全更新元素
             if(document.getElementById('topCounter')) document.getElementById('topCounter').innerText = `已投递: ${count} / 100`;
             if(document.getElementById('progressBar')) document.getElementById('progressBar').style.width = percentage + '%';
             if(document.getElementById('progressText')) document.getElementById('progressText').innerText = `进度: ${count} / 100`;
@@ -125,15 +142,19 @@ let jobs = [];
             localStorage.setItem('myJobHunt', JSON.stringify(jobs));
         }
 
+        // 修改状态的新功能
+        function updateStatus(index, newStatus) {
+            jobs[index].status = newStatus;
+            updateUI(); // 重新保存并刷新
+        }
+
         function addJob() {
-            // 获取输入框
             const company = document.getElementById('companyInput').value.trim();
             const location = document.getElementById('locationInput').value.trim();
             const role = document.getElementById('roleInput').value.trim();
             const details = document.getElementById('detailsInput').value.trim();
             const status = document.getElementById('statusSelect').value;
 
-            // 调试：如果没反应，这里会报错
             if(!company || !role) {
                 alert("请输入公司名称和岗位！");
                 return;
@@ -145,13 +166,10 @@ let jobs = [];
             };
 
             jobs.push(newJob);
-            
-            // 清空输入
             document.getElementById('companyInput').value = '';
             document.getElementById('locationInput').value = '';
             document.getElementById('roleInput').value = '';
             document.getElementById('detailsInput').value = '';
-            
             updateUI();
         }
 
@@ -162,7 +180,6 @@ let jobs = [];
             }
         }
 
-        // 页面加载完成后运行
         window.onload = updateUI;
     </script>
 </body>
