@@ -5,10 +5,10 @@
     <title>Laurina's 100 Job Challenge</title>
     <style>
         :root { --primary: #e67e22; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 40px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
         
-        /* 页面宽度拉伸到 1300px，确保容纳备注和时间 */
-        .container { max-width: 1300px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; }
+        /* 页面宽度大幅增加到 1400px，确保容纳所有列 */
+        .container { max-width: 1400px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; }
         
         h2 { color: var(--primary); margin-top: 0; }
         .top-right-stats { position: absolute; top: 30px; right: 30px; background: var(--primary); color: white; padding: 8px 18px; border-radius: 30px; font-weight: bold; font-size: 14px; }
@@ -20,11 +20,21 @@
         input, select { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
         button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 30px; }
-        th { background: #f8f9fa; color: var(--primary); padding: 15px; text-align: left; border-bottom: 2px solid #eee; white-space: nowrap; }
-        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 13px; vertical-align: top; }
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; table-layout: fixed; }
+        th { background: #f8f9fa; color: var(--primary); padding: 15px; text-align: left; border-bottom: 2px solid #eee; white-space: nowrap; font-size: 14px; }
+        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 13px; vertical-align: top; word-wrap: break-word; }
 
-        .inline-select { padding: 5px 8px; border-radius: 5px; border: 1px solid #ddd; background: #fff; font-size: 12px; cursor: pointer; }
+        /* 给各列分配宽度 */
+        .col-id { width: 40px; }
+        .col-date { width: 100px; }
+        .col-company { width: 180px; }
+        .col-role { width: 150px; }
+        .col-details { width: 300px; } /* 备注信息占用较宽空间 */
+        .col-time { width: 120px; }
+        .col-status { width: 150px; }
+        .col-action { width: 80px; }
+
+        .inline-select { width: 100%; padding: 5px; border-radius: 5px; border: 1px solid #ddd; font-size: 12px; }
         .delete-btn { color: var(--danger); cursor: pointer; font-weight: bold; font-size: 12px; }
     </style>
 </head>
@@ -43,7 +53,7 @@
             <input type="text" id="companyInput" placeholder="公司名称">
             <input type="text" id="locationInput" placeholder="地点">
             <input type="text" id="roleInput" placeholder="岗位名称">
-            <input type="text" id="detailsInput" placeholder="备注">
+            <input type="text" id="detailsInput" placeholder="在此输入具体备注细节">
             <select id="statusSelect">
                 <option value="已投递">已投递</option>
                 <option value="沟通中">沟通中</option>
@@ -58,13 +68,13 @@
         <table id="jobTable">
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th>日期</th>
-                    <th>公司/地点</th>
-                    <th>岗位</th>
-                    <th>备注信息</th> <th style="min-width: 110px;">状态变更</th>
-                    <th style="min-width: 140px;">当前状态</th>
-                    <th>操作</th>
+                    <th class="col-id">#</th>
+                    <th class="col-date">投递日期</th>
+                    <th class="col-company">公司/地点</th>
+                    <th class="col-role">岗位名称</th>
+                    <th class="col-details">备注信息细节</th> <th class="col-time">最近变更时间</th>
+                    <th class="col-status">当前状态</th>
+                    <th class="col-action">操作</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -72,7 +82,6 @@
     </div>
 
     <script>
-        // 密码锁（请确保这里的密码与你之前设置的一致）
         const PASS_WORD = "123456"; 
         let accessGranted = false;
         while (!accessGranted) {
@@ -101,13 +110,14 @@
             tbody.innerHTML = '';
             
             jobs.forEach((job, index) => {
+                // 这里是显示备注的核心代码，job.details 对应你之前输入的每一个字
                 const row = `<tr>
                     <td>${index + 1}</td>
                     <td>${job.date}</td>
                     <td><strong>${job.company}</strong><br><small style="color:#7f8c8d">${job.location}</small></td>
                     <td>${job.role}</td>
-                    <td style="color:#2c3e50; max-width: 250px;">${job.details || '-'}</td>
-                    <td style="color:#7f8c8d; font-size: 11px;">${job.updatedAt || '初始投递'}</td>
+                    <td style="color:#34495e; font-weight: 500;">${job.details || '无备注'}</td>
+                    <td style="color:#7f8c8d; font-size: 11px;">${job.updatedAt || '初始状态'}</td>
                     <td>
                         <select class="inline-select" onchange="updateStatus(${index}, this.value)">
                             <option value="已投递" ${job.status === '已投递' ? 'selected' : ''}>已投递</option>
