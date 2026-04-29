@@ -7,7 +7,7 @@
         :root { --primary: #e67e22; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 40px; }
         
-        /* 1. 扩大页面宽度 */
+        /* 核心修改1：页面变宽 */
         .container { max-width: 1200px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; }
         
         h2 { color: var(--primary); margin-top: 0; }
@@ -15,26 +15,16 @@
         .progress-container { background: #eee; border-radius: 20px; height: 25px; margin: 20px 0; overflow: hidden; position: relative; }
         .progress-bar { background: linear-gradient(90deg, #3498db, #2ecc71); height: 100%; width: 0%; transition: width 0.5s ease; }
         .progress-text { position: absolute; width: 100%; text-align: center; line-height: 25px; font-weight: bold; color: #333; }
-        
         .input-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px; }
         input, select { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
         button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 30px; table-layout: auto; }
-        
-        /* 2. 解决文字一行打不完的问题：th 不换行 */
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+        /* 核心修改2：表头不换行 */
         th { background: #f8f9fa; color: var(--primary); padding: 15px; text-align: left; border-bottom: 2px solid #eee; white-space: nowrap; }
         td { padding: 15px; border-bottom: 1px solid #eee; font-size: 14px; }
 
-        /* 表格内的下拉框样式 */
-        .inline-select {
-            padding: 5px 8px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            background: #fff;
-            font-size: 13px;
-            cursor: pointer;
-        }
+        .inline-select { padding: 5px 8px; border-radius: 5px; border: 1px solid #ddd; background: #fff; font-size: 13px; cursor: pointer; }
         .delete-btn { color: var(--danger); cursor: pointer; font-weight: bold; font-size: 12px; }
     </style>
 </head>
@@ -53,7 +43,7 @@
             <input type="text" id="companyInput" placeholder="公司名称">
             <input type="text" id="locationInput" placeholder="地点">
             <input type="text" id="roleInput" placeholder="岗位名称">
-            <input type="text" id="detailsInput" placeholder="备注 (如: 已发邮件)">
+            <input type="text" id="detailsInput" placeholder="备注">
             <select id="statusSelect">
                 <option value="已投递">已投递</option>
                 <option value="沟通中">沟通中</option>
@@ -82,11 +72,11 @@
     </div>
 
     <script>
-        // --- 密码锁部分保持不变 ---
+        // 密码锁
         const PASS_WORD = "123456"; 
         let accessGranted = false;
         while (!accessGranted) {
-            const userInput = prompt("🔒 这是一个私密追踪器，请输入访问密码：");
+            const userInput = prompt("🔒 请输入访问密码：");
             if (userInput === PASS_WORD) {
                 accessGranted = true;
             } else if (userInput === null) {
@@ -132,20 +122,17 @@
                 tbody.innerHTML += row;
             });
 
-            // 更新计数和进度条
             const count = jobs.length;
             const percentage = Math.min((count / 100) * 100, 100);
             if(document.getElementById('topCounter')) document.getElementById('topCounter').innerText = `已投递: ${count} / 100`;
             if(document.getElementById('progressBar')) document.getElementById('progressBar').style.width = percentage + '%';
             if(document.getElementById('progressText')) document.getElementById('progressText').innerText = `进度: ${count} / 100`;
-            
             localStorage.setItem('myJobHunt', JSON.stringify(jobs));
         }
 
-        // 修改状态的新功能
         function updateStatus(index, newStatus) {
             jobs[index].status = newStatus;
-            updateUI(); // 重新保存并刷新
+            updateUI();
         }
 
         function addJob() {
