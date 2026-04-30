@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <title>Laurina's 100 Job Challenge</title>
     <style>
-        :root { --primary: #e67e22; --accent: #3498db; --success: #2ecc71; --danger: #e74c3c; --warning: #f1c40f; --info: #3498db; }
+        :root { --primary: #e67e22; --accent: #3498db; --success: #2ecc71; --danger: #e74c3c; --warning: #f1c40f; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
         
-        /* 保持宽屏布局 */
         .container { max-width: 1400px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; }
         
         h2 { color: var(--primary); margin-top: 0; }
@@ -25,202 +24,13 @@
         th { background: #f8f9fa; color: var(--primary); padding: 15px; text-align: left; border-bottom: 2px solid #eee; white-space: nowrap; font-size: 14px; }
         td { padding: 15px; border-bottom: 1px solid #eee; font-size: 13px; vertical-align: middle; word-wrap: break-word; }
 
-        /* 状态颜色样式 */
-        .status-select { 
-            width: 100%; 
-            padding: 6px; 
-            border-radius: 6px; 
-            border: none; 
-            font-weight: bold; 
-            cursor: pointer; 
-            color: white; 
-            text-align: center;
+        /* 状态背景色控制 */
+        .status-cell select { 
+            width: 100%; padding: 8px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-align: center;
         }
-        
-        /* 根据状态赋予不同背景颜色 */
-        .bg-applied { background-color: #bdc3c7; color: #2c3e50; } /* 已投递：灰色 */
-        .bg-chatting { background-color: var(--warning); color: #333; } /* 沟通中：黄色 */
-        .bg-interview { background-color: var(--info); color: white; } /* 面试阶段：蓝色 */
-        .bg-offer { background-color: var(--success); color: white; } /* 已拿Offer：绿色 */
-        .bg-rejected { background-color: var(--danger); color: white; } /* 遗憾被拒：红色 */
-        .bg-none { background-color: #ecf0f1; color: #7f8c8d; } /* 未收到通知：淡灰色 */
-
-        .delete-btn { color: var(--danger); cursor: pointer; font-weight: bold; font-size: 12px; }
-        
-        /* 列宽分配 */
-        .col-id { width: 40px; }
-        .col-date { width: 100px; }
-        .col-company { width: 200px; }
-        .col-role { width: 150px; }
-        .col-details { width: 350px; } /* 重点保留：备注空间 */
-        .col-time { width: 120px; }
-        .col-status { width: 160px; }
-        .col-action { width: 60px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="top-right-stats" id="topCounter">已投递: 0 / 100</div>
-        <h2>🎯 Nuo's 全球职业冒险</h2>
-        <p style="color: #7f8c8d; margin-top: -10px;">100个岗位/月投递追踪挑战</p>
-        
-        <div class="progress-container">
-            <div class="progress-bar" id="progressBar"></div>
-            <div class="progress-text" id="progressText">进度: 0 / 100</div>
-        </div>
-        
-        <div class="input-group">
-            <input type="text" id="companyInput" placeholder="公司名称">
-            <input type="text" id="locationInput" placeholder="地点">
-            <input type="text" id="roleInput" placeholder="岗位名称">
-            <input type="text" id="detailsInput" placeholder="备注细节">
-            <select id="statusSelect">
-                <option value="已投递">✓ 已投递</option>
-                <option value="沟通中">沟通中</option>
-                <option value="面试阶段">面试阶段</option>
-                <option value="已拿Offer">已拿Offer! 🎉</option>
-                <option value="未收到通知">未收到通知</option>
-                <option value="遗憾被拒">遗憾被拒</option>
-            </select>
-            <button onclick="addJob()">添加记录</button>
-        </div>
-
-        <table id="jobTable">
-            <thead>
-                <tr>
-                    <th class="col-id">#</th>
-                    <th class="col-date">投递日期</th>
-                    <th class="col-company">公司/地点</th>
-                    <th class="col-role">岗位名称</th>
-                    <th class="col-details">备注信息细节</th>
-                    <th class="col-time">最近变更时间</th>
-                    <th class="col-status">当前状态</th>
-                    <th class="col-action">操作</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
-    </div>
-
-    <script>
-        // 密码锁
-        const PASS_WORD = "123456"; 
-        let accessGranted = false;
-        while (!accessGranted) {
-            const userInput = prompt("🔒 请输入访问密码：");
-            if (userInput === PASS_WORD) {
-                accessGranted = true;
-            } else if (userInput === null) {
-                window.location.href = "about:blank";
-                break;
-            } else {
-                alert("密码错误！");
-            }
-        }
-
-        let jobs = [];
-        try {
-            const saved = localStorage.getItem('myJobHunt');
-            jobs = saved ? JSON.parse(saved) : [];
-        } catch (e) {
-            jobs = [];
-        }
-
-        // 根据状态返回对应的 CSS 类名
-        function getStatusClass(status) {
-            if (status.includes('已投递')) return 'bg-applied';
-            if (status === '沟通中') return 'bg-chatting';
-            if (status === '面试阶段') return 'bg-interview';
-            if (status === '已拿Offer') return 'bg-offer';
-            if (status === '遗憾被拒') return 'bg-rejected';
-            return 'bg-none';
-        }
-
-        function updateUI() {
-            const tbody = document.getElementById('tableBody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-            
-            jobs.forEach((job, index) => {
-                const statusClass = getStatusClass(job.status);
-                
-                const row = `<tr>
-                    <td>${index + 1}</td>
-                    <td>${job.date}</td>
-                    <td><strong>${job.company}</strong><br><small style="color:#7f8c8d">${job.location}</small></td>
-                    <td>${job.role}</td>
-                    <td style="color:#2c3e50;">${job.details || '-'}</td>
-                    <td style="color:#7f8c8d; font-size: 11px;">${job.updatedAt || '初始状态'}</td>
-                    <td>
-                        <select class="status-select ${statusClass}" onchange="updateStatus(${index}, this.value)">
-                            <option value="已投递" ${job.status.includes('已投递') ? 'selected' : ''}>✓ 已投递</option>
-                            <option value="沟通中" ${job.status === '沟通中' ? 'selected' : ''}>沟通中</option>
-                            <option value="面试阶段" ${job.status === '面试阶段' ? 'selected' : ''}>面试阶段</option>
-                            <option value="已拿Offer" ${job.status === '已拿Offer' ? 'selected' : ''}>已拿Offer! 🎉</option>
-                            <option value="未收到通知" ${job.status === '未收到通知' ? 'selected' : ''}>未收到通知</option>
-                            <option value="遗憾被拒" ${job.status === '遗憾被拒' ? 'selected' : ''}>遗憾被拒</option>
-                        </select>
-                    </td>
-                    <td><span class="delete-btn" onclick="deleteJob(${index})">删除</span></td>
-                </tr>`;
-                tbody.innerHTML += row;
-            });
-
-            const count = jobs.length;
-            const percentage = Math.min((count / 100) * 100, 100);
-            if(document.getElementById('topCounter')) document.getElementById('topCounter').innerText = `已投递: ${count} / 100`;
-            if(document.getElementById('progressBar')) document.getElementById('progressBar').style.width = percentage + '%';
-            if(document.getElementById('progressText')) document.getElementById('progressText').innerText = `进度: ${count} / 100`;
-            
-            localStorage.setItem('myJobHunt', JSON.stringify(jobs));
-        }
-
-        function updateStatus(index, newStatus) {
-            const now = new Date();
-            const timeStr = `${(now.getMonth()+1)}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2,'0')}`;
-            jobs[index].status = newStatus;
-            jobs[index].updatedAt = timeStr;
-            updateUI(); // 重新渲染时颜色会随之改变
-        }
-
-        function addJob() {
-            const company = document.getElementById('companyInput').value.trim();
-            const location = document.getElementById('locationInput').value.trim();
-            const role = document.getElementById('roleInput').value.trim();
-            const details = document.getElementById('detailsInput').value.trim();
-            const status = document.getElementById('statusSelect').value;
-
-            if(!company || !role) {
-                alert("请输入公司名称和岗位！");
-                return;
-            }
-
-            const now = new Date();
-            const timeStr = `${(now.getMonth()+1)}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2,'0')}`;
-
-            const newJob = {
-                date: now.toLocaleDateString(),
-                company, location, role, details, status,
-                updatedAt: timeStr
-            };
-
-            jobs.push(newJob);
-            // 清空输入框
-            document.getElementById('companyInput').value = '';
-            document.getElementById('locationInput').value = '';
-            document.getElementById('roleInput').value = '';
-            document.getElementById('detailsInput').value = '';
-            updateUI();
-        }
-
-        function deleteJob(index) {
-            if(confirm('确定删除这条记录吗？')) {
-                jobs.splice(index, 1);
-                updateUI();
-            }
-        }
-
-        window.onload = updateUI;
-    </script>
-</body>
-</html>
+        .st-applied { background: #dfe6e9 !important; color: #2d3436 !important; } /* 已投递-灰色 */
+        .st-chatting { background: #ffeaa7 !important; color: #d35400 !important; } /* 沟通中-黄色 */
+        .st-interview { background: #74b9ff !important; color: white !important; } /* 面试-蓝色 */
+        .st-offer { background: #55efc4 !important; color: #00b894 !important; } /* Offer-绿色 */
+        .st-rejected { background: #ff7675 !important; color: white !important; } /* 被拒-红色 */
+        .st-
