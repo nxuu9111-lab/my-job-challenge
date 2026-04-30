@@ -4,14 +4,15 @@
     <meta charset="UTF-8">
     <title>Laurina's 100 Job Challenge</title>
     <style>
-        :root { --primary: #e67e22; --accent: #3498db; --success: #27ae60; --danger: #e74c3c; }
+        :root { --primary: #e67e22; --accent: #3498db; --success: #2ecc71; --danger: #e74c3c; --warning: #f1c40f; --info: #3498db; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
         
-        /* 页面宽度大幅增加到 1400px，确保容纳所有列 */
+        /* 保持宽屏布局 */
         .container { max-width: 1400px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; }
         
         h2 { color: var(--primary); margin-top: 0; }
         .top-right-stats { position: absolute; top: 30px; right: 30px; background: var(--primary); color: white; padding: 8px 18px; border-radius: 30px; font-weight: bold; font-size: 14px; }
+        
         .progress-container { background: #eee; border-radius: 20px; height: 25px; margin: 20px 0; overflow: hidden; position: relative; }
         .progress-bar { background: linear-gradient(90deg, #3498db, #2ecc71); height: 100%; width: 0%; transition: width 0.5s ease; }
         .progress-text { position: absolute; width: 100%; text-align: center; line-height: 25px; font-weight: bold; color: #333; }
@@ -22,20 +23,39 @@
         
         table { width: 100%; border-collapse: collapse; margin-top: 30px; table-layout: fixed; }
         th { background: #f8f9fa; color: var(--primary); padding: 15px; text-align: left; border-bottom: 2px solid #eee; white-space: nowrap; font-size: 14px; }
-        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 13px; vertical-align: top; word-wrap: break-word; }
+        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 13px; vertical-align: middle; word-wrap: break-word; }
 
-        /* 给各列分配宽度 */
+        /* 状态颜色样式 */
+        .status-select { 
+            width: 100%; 
+            padding: 6px; 
+            border-radius: 6px; 
+            border: none; 
+            font-weight: bold; 
+            cursor: pointer; 
+            color: white; 
+            text-align: center;
+        }
+        
+        /* 根据状态赋予不同背景颜色 */
+        .bg-applied { background-color: #bdc3c7; color: #2c3e50; } /* 已投递：灰色 */
+        .bg-chatting { background-color: var(--warning); color: #333; } /* 沟通中：黄色 */
+        .bg-interview { background-color: var(--info); color: white; } /* 面试阶段：蓝色 */
+        .bg-offer { background-color: var(--success); color: white; } /* 已拿Offer：绿色 */
+        .bg-rejected { background-color: var(--danger); color: white; } /* 遗憾被拒：红色 */
+        .bg-none { background-color: #ecf0f1; color: #7f8c8d; } /* 未收到通知：淡灰色 */
+
+        .delete-btn { color: var(--danger); cursor: pointer; font-weight: bold; font-size: 12px; }
+        
+        /* 列宽分配 */
         .col-id { width: 40px; }
         .col-date { width: 100px; }
-        .col-company { width: 180px; }
+        .col-company { width: 200px; }
         .col-role { width: 150px; }
-        .col-details { width: 300px; } /* 备注信息占用较宽空间 */
+        .col-details { width: 350px; } /* 重点保留：备注空间 */
         .col-time { width: 120px; }
-        .col-status { width: 150px; }
-        .col-action { width: 80px; }
-
-        .inline-select { width: 100%; padding: 5px; border-radius: 5px; border: 1px solid #ddd; font-size: 12px; }
-        .delete-btn { color: var(--danger); cursor: pointer; font-weight: bold; font-size: 12px; }
+        .col-status { width: 160px; }
+        .col-action { width: 60px; }
     </style>
 </head>
 <body>
@@ -53,9 +73,9 @@
             <input type="text" id="companyInput" placeholder="公司名称">
             <input type="text" id="locationInput" placeholder="地点">
             <input type="text" id="roleInput" placeholder="岗位名称">
-            <input type="text" id="detailsInput" placeholder="在此输入具体备注细节">
+            <input type="text" id="detailsInput" placeholder="备注细节">
             <select id="statusSelect">
-                <option value="已投递">已投递</option>
+                <option value="已投递">✓ 已投递</option>
                 <option value="沟通中">沟通中</option>
                 <option value="面试阶段">面试阶段</option>
                 <option value="已拿Offer">已拿Offer! 🎉</option>
@@ -72,7 +92,8 @@
                     <th class="col-date">投递日期</th>
                     <th class="col-company">公司/地点</th>
                     <th class="col-role">岗位名称</th>
-                    <th class="col-details">备注信息细节</th> <th class="col-time">最近变更时间</th>
+                    <th class="col-details">备注信息细节</th>
+                    <th class="col-time">最近变更时间</th>
                     <th class="col-status">当前状态</th>
                     <th class="col-action">操作</th>
                 </tr>
@@ -82,6 +103,7 @@
     </div>
 
     <script>
+        // 密码锁
         const PASS_WORD = "123456"; 
         let accessGranted = false;
         while (!accessGranted) {
@@ -104,23 +126,34 @@
             jobs = [];
         }
 
+        // 根据状态返回对应的 CSS 类名
+        function getStatusClass(status) {
+            if (status.includes('已投递')) return 'bg-applied';
+            if (status === '沟通中') return 'bg-chatting';
+            if (status === '面试阶段') return 'bg-interview';
+            if (status === '已拿Offer') return 'bg-offer';
+            if (status === '遗憾被拒') return 'bg-rejected';
+            return 'bg-none';
+        }
+
         function updateUI() {
             const tbody = document.getElementById('tableBody');
             if (!tbody) return;
             tbody.innerHTML = '';
             
             jobs.forEach((job, index) => {
-                // 这里是显示备注的核心代码，job.details 对应你之前输入的每一个字
+                const statusClass = getStatusClass(job.status);
+                
                 const row = `<tr>
                     <td>${index + 1}</td>
                     <td>${job.date}</td>
                     <td><strong>${job.company}</strong><br><small style="color:#7f8c8d">${job.location}</small></td>
                     <td>${job.role}</td>
-                    <td style="color:#34495e; font-weight: 500;">${job.details || '无备注'}</td>
+                    <td style="color:#2c3e50;">${job.details || '-'}</td>
                     <td style="color:#7f8c8d; font-size: 11px;">${job.updatedAt || '初始状态'}</td>
                     <td>
-                        <select class="inline-select" onchange="updateStatus(${index}, this.value)">
-                            <option value="已投递" ${job.status === '已投递' ? 'selected' : ''}>已投递</option>
+                        <select class="status-select ${statusClass}" onchange="updateStatus(${index}, this.value)">
+                            <option value="已投递" ${job.status.includes('已投递') ? 'selected' : ''}>✓ 已投递</option>
                             <option value="沟通中" ${job.status === '沟通中' ? 'selected' : ''}>沟通中</option>
                             <option value="面试阶段" ${job.status === '面试阶段' ? 'selected' : ''}>面试阶段</option>
                             <option value="已拿Offer" ${job.status === '已拿Offer' ? 'selected' : ''}>已拿Offer! 🎉</option>
@@ -147,7 +180,7 @@
             const timeStr = `${(now.getMonth()+1)}/${now.getDate()} ${now.getHours()}:${now.getMinutes().toString().padStart(2,'0')}`;
             jobs[index].status = newStatus;
             jobs[index].updatedAt = timeStr;
-            updateUI();
+            updateUI(); // 重新渲染时颜色会随之改变
         }
 
         function addJob() {
@@ -172,6 +205,7 @@
             };
 
             jobs.push(newJob);
+            // 清空输入框
             document.getElementById('companyInput').value = '';
             document.getElementById('locationInput').value = '';
             document.getElementById('roleInput').value = '';
