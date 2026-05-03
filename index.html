@@ -2,30 +2,27 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Nuo's Career Adventure Center v3.6</title>
+    <title>Nuo's Career Adventure Center v3.7</title>
     <style>
         :root { --primary: #e67e22; --accent: #3498db; --success: #2ecc71; --danger: #e74c3c; --warning: #f1c40f; --bg: #f4f7f6; }
         * { box-sizing: border-box; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; height: 100vh; overflow: hidden; }
 
-        /* 顶部导航 */
         .header { background: white; padding: 10px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); height: 60px; z-index: 100; }
         .header h2 { margin: 0; color: var(--primary); font-size: 20px; }
         .progress-mini { display: flex; align-items: center; gap: 15px; width: 400px; }
         .progress-bar-bg { background: #eee; border-radius: 10px; height: 12px; flex-grow: 1; overflow: hidden; }
         .progress-bar-fill { background: linear-gradient(90deg, var(--accent), var(--success)); height: 100%; width: 0%; transition: width 0.5s ease; }
 
-        /* 主体分栏 */
         .main-wrapper { display: flex; height: calc(100vh - 60px); padding: 15px; gap: 15px; overflow: hidden; }
 
-        /* 左侧：求职追踪 (65%) */
+        /* 左侧：求职 (65%) */
         .tracker-section { flex: 6.5; background: white; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; }
         .scroll-container { flex-grow: 1; overflow-y: auto; margin-top: 15px; border: 1px solid #eee; border-radius: 8px; }
 
-        /* 右侧：信息区 (35%) */
+        /* 右侧：信息 (35%) */
         .info-section { flex: 3.5; background: white; border-radius: 12px; display: flex; flex-direction: column; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #eee; }
         
-        /* 标签页 */
         .tab-header { display: flex; background: #f8f9fa; border-bottom: 1px solid #eee; flex-shrink: 0; }
         .tab-btn { flex: 1; padding: 15px; border: none; background: none; cursor: pointer; font-weight: bold; color: #7f8c8d; border-bottom: 3px solid transparent; transition: 0.2s; }
         .tab-btn.active { color: var(--primary); background: white; border-bottom: 3px solid var(--primary); }
@@ -34,12 +31,10 @@
         .tab-content { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 20px; overflow-y: auto; display: none; background: white; }
         .tab-content.active { display: block !important; }
 
-        /* 表格样式 */
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th { background: #f8f9fa; color: #7f8c8d; padding: 12px; text-align: left; font-size: 11px; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #eee; }
         td { padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; vertical-align: middle; word-wrap: break-word; }
 
-        /* 状态颜色 */
         .st-select { width: 100%; padding: 6px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 11px; }
         .st-applied { background: #dfe6e9 !important; color: #2d3436 !important; }
         .st-chatting { background: #ffeaa7 !important; color: #d35400 !important; }
@@ -47,178 +42,145 @@
         .st-offer { background: #55efc4 !important; color: #00b894 !important; }
         .st-rejected { background: #ff7675 !important; color: white !important; }
 
-        /* 简历匹配库卡片 */
         .search-area { background: #fffcf5; padding: 15px; border-radius: 10px; border: 2px solid #ffe8cc; margin-bottom: 20px; }
         .search-input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
         .match-result-banner { background: #fff4e5; border: 1px solid #ffcc80; padding: 10px; border-radius: 8px; margin-bottom: 15px; display: none; border-left: 5px solid var(--primary); }
 
-        .logic-card { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 15px; margin-bottom: 12px; position: relative; }
-        .logic-card.matched { border: 2.5px solid var(--primary); background: #fffcf9; transform: scale(1.02); z-index: 2; }
-        .logic-card h4 { margin: 0 0 5px 0; color: #d35400; font-size: 15px; }
-        .logic-target { font-size: 11px; color: var(--primary); font-weight: bold; margin-bottom: 8px; display: block; }
+        .logic-card { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 15px; margin-bottom: 12px; transition: 0.2s; }
+        .logic-card.matched { border: 2.5px solid var(--primary); background: #fffcf9; transform: scale(1.02); }
+        .logic-target { font-size: 11px; color: var(--primary); font-weight: bold; margin-bottom: 5px; display: block; }
         .logic-keywords { font-size: 10px; color: #7f8c8d; background: #f9f9f9; padding: 8px; border-radius: 4px; line-height: 1.4; }
 
-        /* 输入区 */
         .input-box { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #eee; }
         button { background: var(--accent); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px; }
         .del-btn { color: var(--danger); cursor: pointer; font-weight: bold; font-size: 14px; }
         .note-card { background: #fffcf0; border-left: 4px solid var(--primary); padding: 12px; border-radius: 6px; margin-bottom: 12px; }
-        textarea { width: 100%; height: 120px; resize: none; margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+        textarea { width: 100%; height: 100px; resize: none; margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
     </style>
 </head>
 <body>
-    <div id="auth-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-        <h3 style="color:var(--primary);">🔒 Laurina's 私人工作空间</h3>
-        <button onclick="checkAuth()" style="padding:12px 40px; font-size:16px; background:var(--primary); color:white; border:none; border-radius:8px; cursor:pointer;">点击输入密码访问</button>
+    <script>
+        // 1. 密码保护 - 最稳版本
+        const PASS = "123456";
+        while (prompt("🔒 Nuo's 私人空间，请输入密码：") !== PASS) { window.location.href = "about:blank"; break; }
+    </script>
+
+    <div class="header">
+        <h2>🎯 Nuo's 全球职业冒险中心</h2>
+        <div class="progress-mini">
+            <span id="countLabel" style="font-size: 12px; font-weight: bold;">投递: 0/100</span>
+            <div class="progress-bar-bg"><div id="barFill" class="progress-bar-fill"></div></div>
+        </div>
     </div>
 
-    <div id="app-content" style="display:none;">
-        <div class="header">
-            <h2>🎯 Nuo's 全球职业冒险中心</h2>
-            <div class="progress-mini">
-                <span id="countLabel" style="font-size: 12px; font-weight: bold;">投递数: 0/100</span>
-                <div class="progress-bar-bg"><div id="barFill" class="progress-bar-fill"></div></div>
+    <div class="main-wrapper">
+        <section class="tracker-section">
+            <div class="input-box">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                    <input type="text" id="companyIn" placeholder="公司名称">
+                    <input type="text" id="locationIn" placeholder="地点">
+                    <input type="text" id="roleIn" placeholder="岗位名称">
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="detailsIn" placeholder="备注 (M1/M2/M3、投递细节等)" style="flex: 3;">
+                    <select id="statusIn" style="flex: 1;">
+                        <option value="已投递">✓ 已投递</option>
+                        <option value="沟通中">沟通中</option>
+                        <option value="面试阶段">面试阶段</option>
+                        <option value="已拿Offer">已拿Offer! 🎉</option>
+                        <option value="遗憾被拒">遗憾被拒</option>
+                    </select>
+                    <button onclick="addJob()">添加记录</button>
+                </div>
             </div>
-        </div>
+            <div class="scroll-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 35px;">#</th>
+                            <th style="width: 85px;">日期</th>
+                            <th style="width: 150px;">公司/地点</th>
+                            <th style="width: 120px;">岗位</th>
+                            <th>备注细节</th>
+                            <th style="width: 140px;">状态/变更</th>
+                            <th style="width: 35px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="jobTbody"></tbody>
+                </table>
+            </div>
+        </section>
 
-        <div class="main-wrapper">
-            <section class="tracker-section">
-                <div class="input-box">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-                        <input type="text" id="companyIn" placeholder="公司名称">
-                        <input type="text" id="locationIn" placeholder="地点">
-                        <input type="text" id="roleIn" placeholder="岗位名称">
+        <section class="info-section">
+            <div class="tab-header">
+                <button class="tab-btn active" onclick="switchTab('guideTab', this)">🔍 简历智能匹配</button>
+                <button class="tab-btn" onclick="switchTab('notesTab', this)">📝 每日心得</button>
+            </div>
+            <div class="tab-container">
+                <div id="guideTab" class="tab-content active">
+                    <div class="search-area">
+                        <input type="text" id="kwSearch" class="search-input" placeholder="粘贴 JD 关键词进行智能判定..." oninput="autoMatch()">
                     </div>
-                    <div style="display: flex; gap: 8px;">
-                        <input type="text" id="detailsIn" placeholder="备注 (M1/M2/M3、渠道、JD细节等)" style="flex: 3;">
-                        <select id="statusIn" style="flex: 1;">
-                            <option value="已投递">✓ 已投递</option>
-                            <option value="沟通中">沟通中</option>
-                            <option value="面试阶段">面试阶段</option>
-                            <option value="已拿Offer">已拿Offer! 🎉</option>
-                            <option value="遗憾被拒">遗憾被拒</option>
-                        </select>
-                        <button onclick="addJob()">添加记录</button>
+                    <div id="matchBanner" class="match-result-banner">
+                        <strong style="color: var(--primary);">🎯 建议使用：</strong> <span id="matchAdvice"></span>
                     </div>
+                    <div id="resumeList"></div>
                 </div>
-                <div class="scroll-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="width: 35px;">#</th>
-                                <th style="width: 85px;">日期</th>
-                                <th style="width: 150px;">公司/地点</th>
-                                <th style="width: 120px;">岗位</th>
-                                <th>备注细节</th>
-                                <th style="width: 140px;">状态/变更</th>
-                                <th style="width: 35px;"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="jobTbody"></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <section class="info-section">
-                <div class="tab-header">
-                    <button class="tab-btn active" onclick="switchTab('guideTab', this)">🔍 简历智能匹配</button>
-                    <button class="tab-btn" onclick="switchTab('notesTab', this)">📝 每日心得</button>
-                </div>
-                <div class="tab-container">
-                    <div id="guideTab" class="tab-content active">
-                        <div class="search-area">
-                            <input type="text" id="kwSearch" class="search-input" placeholder="粘贴 JD 关键词进行智能判定..." oninput="autoMatch()">
-                        </div>
-                        <div id="matchBanner" class="match-result-banner">
-                            <strong style="color: var(--primary);">🎯 建议使用：</strong> <span id="matchAdvice"></span>
-                        </div>
-                        <div id="resumeList">
-                            </div>
+                <div id="notesTab" class="tab-content">
+                    <div class="input-box" style="background:white;">
+                        <input type="text" id="noteTitleIn" placeholder="笔记标题" style="width:100%; margin-bottom:10px;">
+                        <textarea id="noteContentIn" placeholder="记录复盘或心得..."></textarea>
+                        <button onclick="addNote()" style="width:100%; background:var(--primary);">保存笔记</button>
                     </div>
-                    <div id="notesTab" class="tab-content">
-                        <div class="input-box" style="background:white;">
-                            <input type="text" id="noteTitleIn" placeholder="笔记标题" style="width:100%; margin-bottom:10px;">
-                            <textarea id="noteContentIn" placeholder="记录复盘或心得..."></textarea>
-                            <button onclick="addNote()" style="width:100%; background:var(--primary);">保存笔记</button>
-                        </div>
-                        <div id="noteListCont" style="margin-top:15px;"></div>
-                    </div>
+                    <div id="noteListCont" style="margin-top:15px;"></div>
                 </div>
-            </section>
-        </div>
+            </div>
+        </section>
     </div>
 
     <script>
-        const PASS_WORD = "123456";
-        function checkAuth() {
-            if (prompt("请输入访问密码：") === PASS_WORD) {
-                document.getElementById('auth-overlay').style.display = 'none';
-                document.getElementById('app-content').style.display = 'block';
-                init();
-            } else { alert("密码错误！"); }
-        }
-
-        // --- 完整关键词库数据 ---
         const resumeLogic = [
-            {
-                id: 'M1',
-                name: '客户成功 & 交付管理 (CSM/Delivery)',
-                target: 'Customer Success Manager, Account Manager, Delivery, Implementation Specialist, Project Coordinator, Operations Coordinator',
-                keywords: ['stakeholder management', 'coordination', 'conflict resolution', 'sop creation', 'qa', 'onboarding', 'municipal', 'aec', '交付', '客户成功']
-            },
-            {
-                id: 'M2',
-                name: '业务拓展 & 产品营销 (BD/PMM)',
-                target: 'BD, Growth, PMM, Pre-sales, Proposal Manager, Solutions, Bid Coordinator, Proposal Manager',
-                keywords: ['market intelligence', 'cost-benefit', 'roi', 'regulatory', 'proposal writing', 'gtm', 'b2g', 'sponge city', '拓展', '售前', '投标']
-            },
-            {
-                id: 'M3',
-                name: '内容营销 & 技术传播 (Content/Writing)',
-                target: 'Technical Writer, Communications, Content Marketing Specialist, ESG, Policy, Case Study, White Paper, Bilingual',
-                keywords: ['technical writing', 'policy simplification', 'content creation', 'bilingual', 'documentation', 'report', 'news', 'esg', '写作', '撰写', '内容']
-            }
+            { id: 'M1', name: '客户成功 & 交付管理', target: 'CSM, AM, Delivery Manager, Implementation', keywords: ['stakeholder', 'coordination', 'conflict', 'sop', 'onboarding', 'municipal', 'aec', '交付', '协调'] },
+            { id: 'M2', name: '业务拓展 & 产品营销', target: 'BD, BD Manager, PMM, Pre-sales, Proposal, ROI', keywords: ['roi', 'market', 'proposal', 'growth', 'bidding', 'b2g', 'sponge city', '拓展', '售前', '投标'] },
+            { id: 'M3', name: '内容营销 & 技术传播', target: 'Technical Writer, ESG, Policy, Case Study, Bilingual', keywords: ['writing', 'policy', 'bilingual', 'documentation', 'report', 'news', 'esg', '写作', '撰写', '内容'] }
         ];
 
         let jobs = JSON.parse(localStorage.getItem('myJobHunt') || '[]');
         let notes = JSON.parse(localStorage.getItem('myDailyNotes') || '[]');
 
-        function switchTab(tabId, btn) {
+        function switchTab(t, b) {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            btn.classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active'));
+            document.getElementById(t).classList.add('active');
+            b.classList.add('active');
         }
 
         function autoMatch() {
-            const input = document.getElementById('kwSearch').value.toLowerCase();
+            const val = document.getElementById('kwSearch').value.toLowerCase();
             const banner = document.getElementById('matchBanner');
-            const adviceTxt = document.getElementById('matchAdvice');
-            if (!input.trim()) { banner.style.display = 'none'; renderResumes(); return; }
+            if (!val.trim()) { banner.style.display='none'; renderResumes(); return; }
             let best = null, max = 0;
-            resumeLogic.forEach(res => {
-                let score = 0;
-                res.keywords.forEach(kw => { if (input.includes(kw.toLowerCase())) score++; });
-                if (score > max) { max = score; best = res; }
+            resumeLogic.forEach(r => {
+                let s = 0; r.keywords.forEach(k => { if(val.includes(k)) s++; });
+                if(s > max) { max = s; best = r; }
             });
-            if (max > 0) {
-                banner.style.display = 'block';
-                adviceTxt.innerText = `${best.id} - ${best.name}`;
+            if(max > 0) {
+                banner.style.display='block';
+                document.getElementById('matchAdvice').innerText = best.id + " - " + best.name;
                 renderResumes(best.id);
-            } else { banner.style.display = 'none'; renderResumes(); }
+            } else { banner.style.display='none'; renderResumes(); }
         }
 
-        function renderResumes(highlightId = null) {
-            const container = document.getElementById('resumeList');
-            container.innerHTML = '';
+        function renderResumes(hId = null) {
+            const cont = document.getElementById('resumeList');
+            cont.innerHTML = '';
             let list = [...resumeLogic];
-            if (highlightId) list.sort((a, b) => (a.id === highlightId ? -1 : 1));
-            list.forEach(res => {
-                container.innerHTML += `<div class="logic-card ${res.id === highlightId ? 'matched' : ''}">
-                    <span style="background:${res.id === highlightId ? 'var(--primary)' : '#95a5a6'}; color:white; padding:2px 8px; border-radius:4px; font-size:11px;">${res.id}</span>
-                    <h4>${res.name}</h4>
-                    <span class="logic-target">🎯 ${res.target}</span>
-                    <div class="logic-keywords"><strong>词库：</strong>${res.keywords.join(', ')}</div>
+            if(hId) list.sort((a,b) => a.id === hId ? -1 : 1);
+            list.forEach(r => {
+                cont.innerHTML += `<div class="logic-card ${r.id === hId ? 'matched' : ''}">
+                    <h4 style="margin:0; color:#d35400;">${r.id} - ${r.name}</h4>
+                    <span class="logic-target">🎯 ${r.target}</span>
+                    <div class="logic-keywords"><strong>词库：</strong>${r.keywords.join(', ')}</div>
                 </div>`;
             });
         }
@@ -227,7 +189,8 @@
             const tb = document.getElementById('jobTbody');
             tb.innerHTML = '';
             jobs.forEach((j, i) => {
-                const sCls = j.status.includes('已投递') ? 'st-applied' : j.status.includes('沟通') ? 'st-chatting' : j.status.includes('面试') ? 'st-interview' : j.status.includes('Offer') ? 'st-offer' : 'st-rejected';
+                const s = j.status || '已投递';
+                const cls = s.includes('已投递') ? 'st-applied' : s.includes('沟通') ? 'st-chatting' : s.includes('面试') ? 'st-interview' : s.includes('Offer') ? 'st-offer' : 'st-rejected';
                 tb.innerHTML += `<tr>
                     <td>${jobs.length - i}</td>
                     <td>${j.date || '-'}</td>
@@ -235,12 +198,12 @@
                     <td>${j.role}</td>
                     <td>${j.details || '-'}</td>
                     <td>
-                        <select class="st-select ${sCls}" onchange="updateSt(${i}, this.value)">
-                            <option value="已投递" ${j.status.includes('已投递')?'selected':''}>✓ 已投递</option>
-                            <option value="沟通中" ${j.status.includes('沟通')?'selected':''}>沟通中</option>
-                            <option value="面试阶段" ${j.status.includes('面试')?'selected':''}>面试阶段</option>
-                            <option value="已拿Offer" ${j.status.includes('Offer')?'selected':''}>已拿Offer! 🎉</option>
-                            <option value="遗憾被拒" ${j.status.includes('被拒')?'selected':''}>遗憾被拒</option>
+                        <select class="st-select ${cls}" onchange="updateSt(${i}, this.value)">
+                            <option value="已投递" ${s.includes('已投递')?'selected':''}>✓ 已投递</option>
+                            <option value="沟通中" ${s.includes('沟通')?'selected':''}>沟通中</option>
+                            <option value="面试阶段" ${s.includes('面试')?'selected':''}>面试阶段</option>
+                            <option value="已拿Offer" ${s.includes('Offer')?'selected':''}>已拿Offer! 🎉</option>
+                            <option value="遗憾被拒" ${s.includes('被拒')?'selected':''}>遗憾被拒</option>
                         </select>
                         <div style="font-size:9px; color:#aaa; margin-top:4px; text-align:center">${j.updatedAt || '初始'}</div>
                     </td>
@@ -251,13 +214,13 @@
             nCont.innerHTML = '';
             notes.forEach((n, i) => {
                 nCont.innerHTML += `<div class="note-card">
-                    <span class="del-btn" style="font-size:12px" onclick="delNote(${i})">删除</span>
+                    <span class="del-btn" style="font-size:12px" onclick="delNote(${i})">×</span>
                     <span style="font-size:10px; color:#95a5a6;">${n.time}</span>
                     <h4 style="margin:5px 0; font-size:14px; color:#d35400;">${n.title || '心得'}</h4>
                     <p style="font-size:13px; color:#34495e; margin:0;">${n.content}</p>
                 </div>`;
             });
-            document.getElementById('countLabel').innerText = `投递数: ${jobs.length}/100`;
+            document.getElementById('countLabel').innerText = "投递: " + jobs.length + "/100";
             document.getElementById('barFill').style.width = Math.min(jobs.length, 100) + '%';
             localStorage.setItem('myJobHunt', JSON.stringify(jobs));
             localStorage.setItem('myDailyNotes', JSON.stringify(notes));
@@ -267,20 +230,14 @@
             const co = document.getElementById('companyIn').value.trim();
             const ro = document.getElementById('roleIn').value.trim();
             if(!co || !ro) return alert("公司和岗位必填！");
-            jobs.unshift({
-                date: new Date().toLocaleDateString(),
-                company: co, location: document.getElementById('locationIn').value,
-                role: ro, details: document.getElementById('detailsIn').value,
-                status: document.getElementById('statusIn').value,
-                updatedAt: `${new Date().getHours()}:${new Date().getMinutes().toString().padStart(2,'0')}`
-            });
+            jobs.unshift({ date: new Date().toLocaleDateString(), company: co, location: document.getElementById('locationIn').value, role: ro, details: document.getElementById('detailsIn').value, status: document.getElementById('statusIn').value, updatedAt: new Date().getHours()+":"+new Date().getMinutes().toString().padStart(2,'0') });
             ['companyIn','locationIn','roleIn','detailsIn'].forEach(id=>document.getElementById(id).value='');
             renderAll();
         }
 
-        function updateSt(i, val) {
-            jobs[i].status = val;
-            jobs[i].updatedAt = `${new Date().getMonth()+1}/${new Date().getDate()} ${new Date().getHours()}:${new Date().getMinutes().toString().padStart(2,'0')}`;
+        function updateSt(i, v) {
+            jobs[i].status = v;
+            jobs[i].updatedAt = (new Date().getMonth()+1)+"/"+new Date().getDate()+" "+new Date().getHours()+":"+new Date().getMinutes().toString().padStart(2,'0');
             renderAll();
         }
 
@@ -288,17 +245,13 @@
         function addNote() {
             const ct = document.getElementById('noteContentIn').value.trim();
             if(!ct) return alert("内容不能为空");
-            notes.unshift({
-                time: new Date().toLocaleString(),
-                title: document.getElementById('noteTitleIn').value,
-                content: ct
-            });
-            document.getElementById('noteTitleIn').value = '';
-            document.getElementById('noteContentIn').value = '';
+            notes.unshift({ time: new Date().toLocaleString(), title: document.getElementById('noteTitleIn').value, content: ct });
+            document.getElementById('noteTitleIn').value=''; document.getElementById('noteContentIn').value='';
             renderAll();
         }
         function delNote(i) { if(confirm('删除笔记？')) { notes.splice(i,1); renderAll(); } }
-        function init() { renderAll(); renderResumes(); }
+        
+        window.onload = () => { renderAll(); renderResumes(); };
     </script>
 </body>
 </html>
