@@ -53,6 +53,13 @@
         button { background: var(--accent); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .del-btn { color: var(--danger); cursor: pointer; font-weight: bold; font-size: 14px; }
         .note-card { background: #fffcf0; border-left: 4px solid var(--primary); padding: 12px; border-radius: 6px; margin-bottom: 12px; }
+
+        /* 【新增】确保心得内容保留换行和空格的样式 */
+        .note-display {
+            white-space: pre-wrap;    /* 保留换行和空格 */
+            word-wrap: break-word;   /* 自动折行，防止撑破容器 */
+            line-height: 1.6;        /* 增加一点行高，阅读更舒服 */
+        }
     </style>
 </head>
 <body>
@@ -115,21 +122,21 @@
 
         <section class="info-section">
             <div class="tab-header">
-                <button class="tab-btn active" onclick="switchTab('guideTab', this)">🔍 简历匹配</button>
-                <button class="tab-btn" onclick="switchTab('notesTab', this)">📝 每日心得</button>
+                <button class="tab-btn" onclick="switchTab('guideTab', this)">🔍 简历匹配</button>
+                <button class="tab-btn active" onclick="switchTab('notesTab', this)">📝 每日心得</button>
             </div>
             <div class="tab-container">
-                <div id="guideTab" class="tab-content active">
+                <div id="guideTab" class="tab-content">
                     <div class="search-area">
                         <input type="text" id="kwSearch" class="search-input" placeholder="输入关键词判定版本..." oninput="autoMatch()">
                     </div>
                     <div id="matchAdvice" style="margin-bottom:15px; font-weight:bold; color:var(--primary); display:none;"></div>
                     <div id="resumeList"></div>
                 </div>
-                <div id="notesTab" class="tab-content">
+                <div id="notesTab" class="tab-content active">
                     <div class="input-box" style="background:white;">
                         <input type="text" id="noteTitleIn" placeholder="标题" style="width:100%; margin-bottom:10px;">
-                        <textarea id="noteContentIn" placeholder="复盘心得..." style="width:100%; height:100px; padding:8px;"></textarea>
+                        <textarea id="noteContentIn" placeholder="复盘心得..." style="width:100%; height:150px; padding:8px;"></textarea>
                         <button onclick="addNote()" style="width:100%; background:var(--primary);">保存</button>
                     </div>
                     <div id="noteListCont"></div>
@@ -219,7 +226,7 @@
                     <span class="del-btn" style="font-size:12px" onclick="delNote(${i})">×</span>
                     <div style="font-size:10px; color:#999;">${n.time}</div>
                     <div style="font-weight:bold; color:#d35400; margin:3px 0;">${n.title || '心得'}</div>
-                    <div style="font-size:13px; color:#34495e;">${n.content}</div>
+                    <div class="note-display" style="font-size:13px; color:#34495e;">${n.content}</div>
                 </div>`;
             });
             document.getElementById('countLabel').innerText = "投递: " + jobs.length + "/100";
